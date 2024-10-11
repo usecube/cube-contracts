@@ -15,3 +15,5 @@ docs/
 
 # Data
 data/json/combined_uen.json
+data/json/combined_uen_no_status.json
+data/json/combined_uen_no_status_og.json
