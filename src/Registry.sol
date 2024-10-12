@@ -18,7 +18,7 @@ contract Registry {
 
     // Mappings to store and retrieve merchant data
     mapping(string => Merchant) private merchantsByUEN;
-    mapping(address => string) private uenByWalletAddress;
+    mapping(address => string[]) private uensByWalletAddress;
 
     // Array to store all UENs
     string[] private allUENs;
@@ -50,11 +50,36 @@ contract Registry {
     /////////////////////////
 
     /**
+     * @notice Function to add a new merchant. Only Admin can add to the contract
+     * @param _uen Unique Entity Number of the merchant
+     * @param _entity_name Name of the merchant entity
+     * @param _owner_name Name of the merchant owner
+     * @param _wallet_address Wallet address of the merchant
+     */
+    function addMerchant(
+        string memory _uen,
+        string memory _entity_name,
+        string memory _owner_name,
+        address _wallet_address
+    ) public onlyAdmin {
+        require(bytes(merchantsByUEN[_uen].uen).length == 0, "Merchant with this UEN already exists");
+        require(bytes(_uen).length > 0, "UEN cannot be empty");
+        require(bytes(_entity_name).length > 0, "Entity name cannot be empty");
+
+        Merchant memory newMerchant = Merchant(_uen, _entity_name, _owner_name, _wallet_address);
+        merchantsByUEN[_uen] = newMerchant;
+        uensByWalletAddress[_wallet_address].push(_uen);
+        allUENs.push(_uen);
+
+        emit MerchantAdded(_uen, _entity_name, _owner_name, _wallet_address);
+    }
+
+    /**
      * @notice Function for admin to add a new merchant with minimal information
      * @param _uen Unique Entity Number of the merchant
      * @param _entity_name Name of the merchant entity
      */
-    function addMerchantByAdmin(string memory _uen, string memory _entity_name) public onlyAdmin {
+    function addMerchantInBulk(string memory _uen, string memory _entity_name) public onlyAdmin {
         require(bytes(merchantsByUEN[_uen].uen).length == 0, "Merchant with this UEN already exists");
 
         Merchant memory newMerchant = Merchant(_uen, _entity_name, "", address(0));
@@ -62,32 +87,6 @@ contract Registry {
         allUENs.push(_uen);
 
         emit MerchantAdded(_uen, _entity_name, "", address(0));
-    }
-
-    /**
-     * @notice Function to add a new merchant with full information
-     * @param _uen Unique Entity Number of the merchant
-     * @param _entity_name Name of the merchant entity
-     * @param _owner_name Name of the merchant owner
-     * @param _wallet_address Wallet address of the merchant
-     */
-    function addMerchantBrandNew(
-        string memory _uen,
-        string memory _entity_name,
-        string memory _owner_name,
-        address _wallet_address
-    ) public {
-        require(bytes(merchantsByUEN[_uen].uen).length == 0, "Merchant with this UEN already exists");
-        require(
-            bytes(uenByWalletAddress[_wallet_address]).length == 0, "Wallet address already associated with a merchant"
-        );
-
-        Merchant memory newMerchant = Merchant(_uen, _entity_name, _owner_name, _wallet_address);
-        merchantsByUEN[_uen] = newMerchant;
-        uenByWalletAddress[_wallet_address] = _uen;
-        allUENs.push(_uen);
-
-        emit MerchantAdded(_uen, _entity_name, _owner_name, _wallet_address);
     }
 
     /**
@@ -102,7 +101,7 @@ contract Registry {
         string memory _entity_name,
         string memory _owner_name,
         address _wallet_address
-    ) public {
+    ) public onlyAdmin {
         require(bytes(merchantsByUEN[_uen].uen).length > 0, "Merchant with this UEN does not exist");
 
         Merchant storage merchant = merchantsByUEN[_uen];
@@ -116,13 +115,14 @@ contract Registry {
         }
 
         if (_wallet_address != address(0) && _wallet_address != merchant.wallet_address) {
+            // Remove UEN from old wallet address
             if (merchant.wallet_address != address(0)) {
-                delete uenByWalletAddress[merchant.wallet_address];
+                removeUENFromWalletAddress(merchant.wallet_address, _uen);
             }
-            uenByWalletAddress[_wallet_address] = _uen;
+            // Add UEN to new wallet address
+            uensByWalletAddress[_wallet_address].push(_uen);
             merchant.wallet_address = _wallet_address;
         }
-
         emit MerchantUpdated(_uen, merchant.entity_name, merchant.owner_name, merchant.wallet_address);
     }
 
@@ -135,9 +135,9 @@ contract Registry {
 
         address walletAddress = merchantsByUEN[_uen].wallet_address;
 
-        // Remove from uenByWalletAddress mapping if wallet address exists
+        // Remove from uensByWalletAddress mapping if wallet address exists
         if (walletAddress != address(0)) {
-            delete uenByWalletAddress[walletAddress];
+            removeUENFromWalletAddress(walletAddress, _uen);
         }
 
         // Remove from merchantsByUEN mapping
@@ -156,6 +156,21 @@ contract Registry {
     }
 
     /////////////////////////
+    //////// HELPERS ////////
+    /////////////////////////
+
+    function removeUENFromWalletAddress(address _wallet_address, string memory _uen) private {
+        string[] storage uens = uensByWalletAddress[_wallet_address];
+        for (uint256 i = 0; i < uens.length; i++) {
+            if (keccak256(bytes(uens[i])) == keccak256(bytes(_uen))) {
+                uens[i] = uens[uens.length - 1];
+                uens.pop();
+                break;
+            }
+        }
+    }
+
+    /////////////////////////
     //////// GETTERS ////////
     /////////////////////////
 
@@ -171,13 +186,18 @@ contract Registry {
 
     /**
      * @notice Function to retrieve merchant information by wallet address
-     * @param _wallet_address Wallet address of the merchant
-     * @return Merchant struct containing merchant information
+     * @param _wallet_address Wallet address of the merchant(s)
+     * @return An array of Merchant structs containing merchant information
      */
-    function getMerchantByWalletAddress(address _wallet_address) public view returns (Merchant memory) {
-        string memory uen = uenByWalletAddress[_wallet_address];
-        require(bytes(uen).length > 0, "No merchant associated with this wallet address");
-        return merchantsByUEN[uen];
+    function getMerchantsByWalletAddress(address _wallet_address) public view returns (Merchant[] memory) {
+        string[] memory uens = uensByWalletAddress[_wallet_address];
+        require(uens.length > 0, "No merchants associated with this wallet address");
+
+        Merchant[] memory merchants = new Merchant[](uens.length);
+        for (uint256 i = 0; i < uens.length; i++) {
+            merchants[i] = merchantsByUEN[uens[i]];
+        }
+        return merchants;
     }
 
     /**
