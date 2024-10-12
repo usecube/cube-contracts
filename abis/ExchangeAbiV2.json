@@ -10,11 +10,6 @@
                 "internalType": "address",
                 "name": "_usdcAddress",
                 "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "_vaultAddress",
-                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -48,6 +43,28 @@
         "type": "error"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableInvalidOwner",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableUnauthorizedAccount",
+        "type": "error"
+    },
+    {
         "inputs": [],
         "name": "ReentrancyGuardReentrantCall",
         "type": "error"
@@ -62,6 +79,70 @@
         ],
         "name": "SafeERC20FailedOperation",
         "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "newFeeCollector",
+                "type": "address"
+            }
+        ],
+        "name": "FeeCollectorUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "FeeUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "FeesWithdrawn",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
     },
     {
         "anonymous": false,
@@ -95,70 +176,8 @@
         "type": "event"
     },
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "from",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "to",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "string",
-                "name": "uen",
-                "type": "string"
-            }
-        ],
-        "name": "VaultDeposit",
-        "type": "event"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "string",
-                "name": "_uen",
-                "type": "string"
-            }
-        ],
-        "name": "getMerchantWalletAddress",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "getUSDCBalance",
+        "inputs": [],
+        "name": "fee",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -170,19 +189,26 @@
         "type": "function"
     },
     {
-        "inputs": [
+        "inputs": [],
+        "name": "feeCollector",
+        "outputs": [
             {
                 "internalType": "address",
-                "name": "_account",
+                "name": "",
                 "type": "address"
             }
         ],
-        "name": "getVaultBalance",
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
         "outputs": [
             {
-                "internalType": "uint256",
+                "internalType": "address",
                 "name": "",
-                "type": "uint256"
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -202,19 +228,47 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
-                "internalType": "string",
-                "name": "_uen",
-                "type": "string"
-            },
-            {
                 "internalType": "uint256",
-                "name": "_amount",
+                "name": "_newFee",
                 "type": "uint256"
             }
         ],
-        "name": "transfer",
+        "name": "setFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_newFeeCollector",
+                "type": "address"
+            }
+        ],
+        "name": "setFeeCollector",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -232,7 +286,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "transferToVault",
+        "name": "transferToMerchant",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -251,16 +305,21 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "vault",
-        "outputs": [
+        "inputs": [
             {
-                "internalType": "contract IERC4626",
-                "name": "",
+                "internalType": "address",
+                "name": "_to",
                 "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
             }
         ],
-        "stateMutability": "view",
+        "name": "withdrawFees",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

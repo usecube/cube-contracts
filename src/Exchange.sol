@@ -5,63 +5,66 @@ pragma solidity ^0.8.20;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Registry} from "./Registry.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
-contract Exchange is ReentrancyGuard {
+contract Exchange is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
     Registry public immutable registry;
     IERC20 public immutable usdcToken;
-    IERC4626 public immutable vault;
+
+    uint256 public fee = 100; // 100 basis points fee (1%)
+    address public feeCollector;
 
     event Transfer(address indexed from, address indexed to, uint256 amount, string uen);
-    event VaultDeposit(address indexed from, address indexed to, uint256 amount, uint256 shares, string uen);
+    event FeeUpdated(uint256 newFee);
+    event FeeCollectorUpdated(address newFeeCollector);
+    event FeesWithdrawn(address indexed to, uint256 amount);
 
-    constructor(address _registryAddress, address _usdcAddress, address _vaultAddress) {
+    constructor(address _registryAddress, address _usdcAddress) Ownable(msg.sender) {
         require(_registryAddress != address(0), "Invalid registry address");
         require(_usdcAddress != address(0), "Invalid USDC address");
-        require(_vaultAddress != address(0), "Invalid vault address");
         registry = Registry(_registryAddress);
         usdcToken = IERC20(_usdcAddress);
-        vault = IERC4626(_vaultAddress);
+        feeCollector = address(this);
     }
 
-    function transfer(string memory _uen, uint256 _amount) external nonReentrant {
+    function transferToMerchant(string memory _uen, uint256 _amount) external nonReentrant {
         require(_amount > 0, "Amount must be greater than zero");
 
-        Registry.Merchant memory merchant = registry.getMerchantByUEN(_uen);
-        require(merchant.wallet_address != address(0), "Invalid merchant wallet address");
+        address merchantWalletAddress = registry.getMerchantByUEN(_uen).wallet_address;
+        require(merchantWalletAddress != address(0), "Invalid merchant wallet address");
 
-        usdcToken.safeTransferFrom(msg.sender, merchant.wallet_address, _amount);
+        uint256 feeAmount = (_amount * fee) / 10000;
+        uint256 merchantAmount = _amount - feeAmount;
 
-        emit Transfer(msg.sender, merchant.wallet_address, _amount, _uen);
+        usdcToken.safeTransferFrom(msg.sender, merchantWalletAddress, merchantAmount);
+        if (feeAmount > 0) {
+            usdcToken.safeTransferFrom(msg.sender, feeCollector, feeAmount);
+        }
+
+        emit Transfer(msg.sender, merchantWalletAddress, merchantAmount, _uen);
     }
 
-    function transferToVault(string memory _uen, uint256 _amount) external nonReentrant {
-        require(_amount > 0, "Amount must be greater than zero");
-
-        Registry.Merchant memory merchant = registry.getMerchantByUEN(_uen);
-        require(merchant.wallet_address != address(0), "Invalid merchant wallet address");
-
-        usdcToken.safeTransferFrom(msg.sender, address(this), _amount);
-        usdcToken.safeIncreaseAllowance(address(vault), _amount);
-
-        uint256 shares = vault.deposit(_amount, merchant.wallet_address);
-
-        emit VaultDeposit(msg.sender, merchant.wallet_address, _amount, shares, _uen);
+    function setFee(uint256 _newFee) external onlyOwner {
+        require(_newFee <= 1000, "Fee cannot exceed 10%");
+        fee = _newFee;
+        emit FeeUpdated(_newFee);
     }
 
-    function getMerchantWalletAddress(string memory _uen) external view returns (address) {
-        Registry.Merchant memory merchant = registry.getMerchantByUEN(_uen);
-        return merchant.wallet_address;
+    function setFeeCollector(address _newFeeCollector) external onlyOwner {
+        require(_newFeeCollector != address(0), "Invalid fee collector address");
+        feeCollector = _newFeeCollector;
+        emit FeeCollectorUpdated(_newFeeCollector);
     }
 
-    function getUSDCBalance(address _account) external view returns (uint256) {
-        return usdcToken.balanceOf(_account);
-    }
+    function withdrawFees(address _to, uint256 _amount) external onlyOwner {
+        require(_to != address(0), "Invalid withdrawal address");
+        require(_amount > 0, "Withdrawal amount must be greater than zero");
+        require(_amount <= usdcToken.balanceOf(address(this)), "Insufficient balance");
 
-    function getVaultBalance(address _account) external view returns (uint256) {
-        return vault.balanceOf(_account);
+        usdcToken.safeTransfer(_to, _amount);
+        emit FeesWithdrawn(_to, _amount);
     }
 }
