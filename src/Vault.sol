@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.21;
+
+pragma solidity ^0.8.21;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ERC4626Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -23,7 +25,7 @@ contract Vault is IERC4626Vault, ERC4626Upgradeable, OwnableUpgradeable {
     /* ========== STATE VARIABLES ========== */
 
     address public usdc;
-    address public aEthUSDC;
+    address public aBaseUsdc;
     address public aaveV3Pool;
 
     /* ========== CONSTRUCTOR ========== */
@@ -37,16 +39,16 @@ contract Vault is IERC4626Vault, ERC4626Upgradeable, OwnableUpgradeable {
      * @dev Initialize the ERC4626AaveV3UsdcVault.
      * @param _usdc USDC contract address.
      * @param _aaveV3Pool Aave V3 Pool contract address.
-     * @param _aEthUSDC Aave USDC address.
+     * @param _aBaseUsdc Aave USDC address.
      */
-    function initialize(IERC20 _usdc, address _aaveV3Pool, address _aEthUSDC) external initializer {
+    function initialize(IERC20 _usdc, address _aaveV3Pool, address _aBaseUsdc) external initializer {
         __Ownable_init(_msgSender());
         __ERC4626_init(_usdc);
-        __ERC20_init("Wrapped Aave USDC V3", "wAEthUSDC");
+        __ERC20_init("Wrapped Aave USDC V3", "wABaseUSDC");
 
         usdc = address(_usdc);
         aaveV3Pool = _aaveV3Pool;
-        aEthUSDC = _aEthUSDC;
+        aBaseUsdc = _aBaseUsdc;
     }
 
     /* ========== VIEWS ========== */
@@ -55,7 +57,7 @@ contract Vault is IERC4626Vault, ERC4626Upgradeable, OwnableUpgradeable {
      * @dev See {IERC4626-totalAssets}.
      */
     function totalAssets() public view override returns (uint256) {
-        return IERC20(aEthUSDC).balanceOf(address(this));
+        return IERC20(aBaseUsdc).balanceOf(address(this));
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
