@@ -1,4 +1,4 @@
-# Cube Contracts
+# Cube Contracts 🧊
 
 ## Contracts
 
