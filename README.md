@@ -1,5 +1,7 @@
 # Cube Contracts 🧊
 
+Smart Contracts Repository that is part of [Cube](https://github.com/usecube)
+
 ## Contracts
 
 1. Registry.sol: [0x2b4836d81370e37030727e4dcbd9cc5a772cf43a](https://sepolia.basescan.org/address/0x2b4836d81370e37030727e4dcbd9cc5a772cf43a)
