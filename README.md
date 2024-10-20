@@ -1,8 +1,7 @@
 # Cube Contracts 🧊
 
-Github Organisation: [Cube](https://github.com/usecube)
-<br />
-Deployed Website: https://usecube.vercel.app
+- Github Organisation: [Cube](https://github.com/usecube)
+- Deployed Website: https://usecube.vercel.app
 
 ## Contracts
 
