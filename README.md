@@ -28,3 +28,9 @@ forge script script/deploy/Exchange.s.sol:DeployExchange --rpc-url <PRC_URL> --b
 ```
 forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadcast --private-key <PRIVATE_KEY>
 ```
+
+## Tests
+
+```
+forge test -vv
+```
