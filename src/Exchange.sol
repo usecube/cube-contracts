@@ -11,7 +11,7 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 /**
  * @title Cube Exchange
- * @author Dann Wee
+ * @author @dannweeeee
  * @notice Cube Exchange is a contract that allows users to transfer USDC to merchants.
  */
 contract Exchange is ReentrancyGuard, Ownable {

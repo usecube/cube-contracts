@@ -34,3 +34,23 @@ forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadca
 ```
 forge test -vv
 ```
+
+## Actions
+
+### Check Registry
+
+```
+forge script script/actions/checkRegistry.s.sol:CheckRegistry --rpc-url <RPC_URL>
+```
+
+### Remove Merchant
+
+```
+forge script script/actions/removeMerchant.s.sol:RemoveMerchant --rpc-url <RPC_URL> --broadcast
+```
+
+### Add Merchant
+
+```
+forge script script/actions/addMerchant.s.sol:AddMerchant --rpc-url <RPC_URL> --broadcast
+```

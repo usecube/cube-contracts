@@ -14,7 +14,7 @@ import {IERC4626Vault} from "./interfaces/vaults/IERC4626Vault.sol";
 
 /**
  * @title ERC4626AaveV3UsdcVault
- * @author Dann Wee
+ * @author @dannweeeee
  * @dev ERC4626AaveV3UsdcVault is an ERC4626 compliant vault.
  * @dev The ERC4626 "Tokenized Vault Standard" is defined in https://eips.ethereum.org/EIPS/eip-4626[EIP-4626].
  */

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title Registry Contract for Merchant Management
- * @author Dann Wee
+ * @author @dannweeeee
  * @notice This contract manages merchant records
  */
 contract Registry {
