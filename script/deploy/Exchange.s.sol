@@ -6,7 +6,8 @@ import "../../src/Exchange.sol";
 
 contract DeployExchange is Script {
     function run() external {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         address registryAddress = 0x2b4836d81370e37030727E4DCbd9cC5a772cf43A;
         address usdcAddress = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;

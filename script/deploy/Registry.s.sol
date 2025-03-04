@@ -6,7 +6,8 @@ import "../../src/Registry.sol";
 
 contract DeployRegistry is Script {
     function run() external {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         Registry registry = new Registry();
 

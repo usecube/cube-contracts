@@ -15,19 +15,19 @@
 1. Registry.sol
 
 ```
-forge script script/deploy/Registry.s.sol:DeployRegistry --rpc-url <PRC_URL> --broadcast --private-key <PRIVATE_KEY>
+forge script script/deploy/Registry.s.sol:DeployRegistry --rpc-url <PRC_URL> --broadcast 
 ```
 
 2. Exchange.sol
 
 ```
-forge script script/deploy/Exchange.s.sol:DeployExchange --rpc-url <PRC_URL> --broadcast --private-key <PRIVATE_KEY>
+forge script script/deploy/Exchange.s.sol:DeployExchange --rpc-url <PRC_URL> --broadcast 
 ```
 
 3. Vault.sol
 
 ```
-forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadcast --private-key <PRIVATE_KEY>
+forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadcast 
 ```
 
 4. XSGD.sol

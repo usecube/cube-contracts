@@ -19,7 +19,8 @@ contract DeployVault is Script {
         // Address of aBaseUSDC on Base Sepolia
         address aBaseUSDCAddress = 0xfE45Bf4dEF7223Ab1Bf83cA17a4462Ef1647F7FF;
 
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the implementation contract
         Vault vaultImplementation = new Vault();
