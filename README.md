@@ -15,19 +15,19 @@
 1. Registry.sol
 
 ```
-forge script script/deploy/Registry.s.sol:DeployRegistry --rpc-url <PRC_URL> --broadcast 
+forge script script/deploy/Registry.s.sol:DeployRegistry --rpc-url <PRC_URL> --broadcast
 ```
 
 2. Exchange.sol
 
 ```
-forge script script/deploy/Exchange.s.sol:DeployExchange --rpc-url <PRC_URL> --broadcast 
+forge script script/deploy/Exchange.s.sol:DeployExchange --rpc-url <PRC_URL> --broadcast
 ```
 
 3. Vault.sol
 
 ```
-forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadcast 
+forge script script/deploy/Vault.s.sol:DeployVault --rpc-url <PRC_URL> --broadcast
 ```
 
 4. XSGD.sol
@@ -60,4 +60,24 @@ forge script script/actions/removeMerchant.s.sol:RemoveMerchant --rpc-url <RPC_U
 
 ```
 forge script script/actions/addMerchant.s.sol:AddMerchant --rpc-url <RPC_URL> --broadcast
+```
+
+### Withdraw USDC From Vault
+
+#### Check Shares
+
+```
+forge script script/actions/withdrawUSDCFromVault.s.sol:WithdrawUSDCFromVault --sig "checkShares(address,address)" <EXCHANGE_ADDRESS> <MERCHANT_ADDRESS> --rpc-url <RPC_URL>
+```
+
+#### Convert Shares to Assets
+
+```
+forge script script/actions/withdrawUSDCFromVault.s.sol:WithdrawUSDCFromVault --sig "convertSharesToAssets(address,uint256)" <EXCHANGE_ADDRESS> <SHARES> --rpc-url <RPC_URL>
+```
+
+#### Withdraw USDC From Vault
+
+```
+forge script script/actions/withdrawUSDCFromVault.s.sol:WithdrawUSDCFromVault --sig "run(address,uint256)" <EXCHANGE_ADDRESS> <SHARES> --rpc-url <RPC_URL> --broadcast
 ```
