@@ -18,7 +18,7 @@ contract RemoveMerchant is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Remove merchant via UEN (Check Registry to get UEN)
-        string memory UEN = "201715518C";
+        string memory UEN = "201709931R";
         registry.deleteMerchant(UEN);
 
         console.log("Merchant removed successfully", UEN);
