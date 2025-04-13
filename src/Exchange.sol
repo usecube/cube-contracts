@@ -19,6 +19,7 @@ contract Exchange is ReentrancyGuard, Ownable {
 
     Registry public immutable registry;
     IERC20 public immutable usdcToken;
+    IERC20 public immutable xsgdToken;
     IERC4626 public immutable vault;
 
     uint256 public fee = 100; // 100 basis points fee (1%)
@@ -34,12 +35,16 @@ contract Exchange is ReentrancyGuard, Ownable {
     event VaultDeposit(address indexed merchant, uint256 assets, uint256 shares);
     event VaultWithdraw(address indexed merchant, uint256 assets, uint256 shares);
 
-    constructor(address _registryAddress, address _usdcAddress, address _vaultAddress) Ownable(msg.sender) {
+    constructor(address _registryAddress, address _usdcAddress, address _xsgdAddress, address _vaultAddress)
+        Ownable(msg.sender)
+    {
         require(_registryAddress != address(0), "Invalid registry address");
         require(_usdcAddress != address(0), "Invalid USDC address");
+        require(_xsgdAddress != address(0), "Invalid xSGD address");
         require(_vaultAddress != address(0), "Invalid vault address");
         registry = Registry(_registryAddress);
         usdcToken = IERC20(_usdcAddress);
+        xsgdToken = IERC20(_xsgdAddress);
         feeCollector = address(this);
         vault = IERC4626(_vaultAddress);
         lastUpdateTime = block.timestamp;
@@ -55,7 +60,7 @@ contract Exchange is ReentrancyGuard, Ownable {
      * @param _uen Merchant's UEN.
      * @param _amount Amount of USDC to transfer to merchant.
      */
-    function transferToMerchant(string memory _uen, uint256 _amount) external nonReentrant {
+    function transferUsdcToMerchant(string memory _uen, uint256 _amount) external nonReentrant {
         require(_amount > 0, "Amount must be greater than zero");
 
         address merchantWalletAddress = registry.getMerchantByUEN(_uen).wallet_address;
@@ -67,6 +72,23 @@ contract Exchange is ReentrancyGuard, Ownable {
         usdcToken.safeTransferFrom(msg.sender, merchantWalletAddress, merchantAmount);
         if (feeAmount > 0) {
             usdcToken.safeTransferFrom(msg.sender, feeCollector, feeAmount);
+        }
+
+        emit Transfer(msg.sender, merchantWalletAddress, merchantAmount, _uen);
+    }
+
+    function transferXsgdToMerchant(string memory _uen, uint256 _amount) external nonReentrant {
+        require(_amount > 0, "Amount must be greater than zero");
+
+        address merchantWalletAddress = registry.getMerchantByUEN(_uen).wallet_address;
+        require(merchantWalletAddress != address(0), "Invalid merchant wallet address");
+
+        uint256 feeAmount = (_amount * fee) / 10000;
+        uint256 merchantAmount = _amount - feeAmount;
+
+        xsgdToken.safeTransferFrom(msg.sender, merchantWalletAddress, merchantAmount);
+        if (feeAmount > 0) {
+            xsgdToken.safeTransferFrom(msg.sender, feeCollector, feeAmount);
         }
 
         emit Transfer(msg.sender, merchantWalletAddress, merchantAmount, _uen);
@@ -154,11 +176,11 @@ contract Exchange is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @notice Withdraw fees.
+     * @notice Withdraw USDC fees.
      * @param _to Withdrawal address.
      * @param _amount Amount of USDC to withdraw.
      */
-    function withdrawFees(address _to, uint256 _amount) external onlyOwner {
+    function withdrawUsdcFees(address _to, uint256 _amount) external onlyOwner {
         require(_to != address(0), "Invalid withdrawal address");
         require(_amount > 0, "Withdrawal amount must be greater than zero");
         require(_amount <= usdcToken.balanceOf(address(this)), "Insufficient balance");
@@ -166,6 +188,24 @@ contract Exchange is ReentrancyGuard, Ownable {
         usdcToken.safeTransfer(_to, _amount);
         emit FeesWithdrawn(_to, _amount);
     }
+
+    /**
+     * @notice Withdraw XSGD fees.
+     * @param _to Withdrawal address.
+     * @param _amount Amount of XSGD to withdraw.
+     */
+    function withdrawXsgdFees(address _to, uint256 _amount) external onlyOwner {
+        require(_to != address(0), "Invalid withdrawal address");
+        require(_amount > 0, "Withdrawal amount must be greater than zero");
+        require(_amount <= xsgdToken.balanceOf(address(this)), "Insufficient balance");
+
+        xsgdToken.safeTransfer(_to, _amount);
+        emit FeesWithdrawn(_to, _amount);
+    }
+
+    ///////////////////
+    // VAULT HELPERS //
+    ///////////////////
 
     /**
      * @notice Get current price per share
